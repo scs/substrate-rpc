@@ -5,8 +5,11 @@ use std::io::{self, Write};
 use hyper::{Client, Method, Request, Body};
 use hyper::header::HeaderValue;
 use hyper::rt::{self, Future, Stream};
+use serde_json::{Value, map::Map};
 
-pub fn get() {
+
+
+pub fn getMetadata() {
     rt::run(rt::lazy(|| {
         // This is main future that the runtime will execute.
         //
@@ -16,7 +19,7 @@ pub fn get() {
         // This is where we will setup our HTTP client requests.
         let client = Client::new();
 
-        let json = r#"{"method": "chain_getRuntimeVersion", "params": null, "jsonrpc": "2.0", "id": 0}"#;
+        let json = r#"{"method": "state_getMetadata", "params": null, "jsonrpc": "2.0", "id": 0}"#;
         let uri: hyper::Uri = "http://127.0.0.1:9933".parse().unwrap();
         let mut req = Request::new(Body::from(json));
         *req.method_mut() = Method::POST;
@@ -31,17 +34,23 @@ pub fn get() {
             res.into_body().concat2()
         });
 
+        //let body = post.wait().unwrap();
 
+        
         post
-            .map(|posted| {
+            .map(|body| {
+                println!("metadata result: {:?}", body);
+                //let ret: &[u8] = serde_json::from_slice(&body).unwrap();
+
                 //println!("GET: {:?}", got);
-                println!("POST: {:?}", posted);
+                
+                //println!("extracted: {:?}", metadata["result"]);
+                //Ok(body)
             })
             .map_err(|err| {
                 println!("Error: {}", err);
             })
-        
-
+    
 
     }));
 }
@@ -49,6 +58,6 @@ pub fn get() {
 // run local 'substrate --dev' node to run these tests
 #[test]
 fn test_getter() {
-    get();
+    getMetadata();
 
 }
