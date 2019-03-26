@@ -1,0 +1,10 @@
+[package]
+name = "substrate-rpc"
+version = "0.1.0"
+authors = ["Alain <alain.brenzikofer@scs.ch>"]
+edition = "2018"
+
+[dependencies]
+futures = "0.1"
+hyper = "0.12"
+tokio-core = "0.1"
