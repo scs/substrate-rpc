@@ -1,9 +1,22 @@
-#![deny(warnings)]
+//#![deny(warnings)]
 extern crate hyper;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
+extern crate primitives;
+
+use primitives::OpaqueMetadata;
+use srml_metadata::{
+	DecodeDifferent, FnEncode, RuntimeMetadata,
+	ModuleMetadata, RuntimeMetadataV2,
+	DefaultByteGetter, RuntimeMetadataPrefixed,
+};
+#[cfg(feature = "std")]
+//use parity_codec::codec::Decode;
+use parity_codec::{Decode, Input};
+//use parity_codec::{Encode, Output};
+//use rstd::vec::Vec;
 
 use hyper::rt::{self, Future, Stream};
 use hyper::{Client, Method, Request, Body};
@@ -15,8 +28,9 @@ pub fn doit() {
     let fut = fetch_json(url)
         // use the parsed vector
         .map(|ret| {
-            // print users
             println!("result: {:#?}", ret.result);
+            //let _om = OpaqueMetadata::new(ret.result.into_bytes());
+            let _meta = ModuleMetadata::decode(ret.result.into_bytes());
         })
         // if there was an error print it
         .map_err(|e| {
