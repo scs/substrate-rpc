@@ -15,5 +15,5 @@ parity-codec = { version = "3.0", default-features = false }
 parity-codec-derive = { version = "3.0", default-features = false }
 primitives = { package = "substrate-primitives", git = "https://github.com/paritytech/substrate.git" }
 srml_metadata = { package = "srml-metadata", git = "https://github.com/paritytech/substrate.git" }
-
+hex = "0.3"
 

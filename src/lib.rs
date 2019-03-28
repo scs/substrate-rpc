@@ -1,19 +1,20 @@
 //#![deny(warnings)]
-extern crate hyper;
+//extern crate hyper;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde;
-extern crate serde_json;
-extern crate primitives;
+//extern crate serde;
+//extern crate serde_json;
+//extern crate primitives;
 
 use primitives::OpaqueMetadata;
 use srml_metadata::{
-	DecodeDifferent, FnEncode, RuntimeMetadata,
+	DecodeDifferent, DecodeDifferentArray, FnEncode, RuntimeMetadata,
 	ModuleMetadata, RuntimeMetadataV2,
 	DefaultByteGetter, RuntimeMetadataPrefixed,
 };
-#[cfg(feature = "std")]
+//#[cfg(feature = "std")]
 //use parity_codec::codec::Decode;
+#[cfg(feature = "std")]
 use parity_codec::{Decode, Input};
 //use parity_codec::{Encode, Output};
 //use rstd::vec::Vec;
@@ -28,9 +29,21 @@ pub fn doit() {
     let fut = fetch_json(url)
         // use the parsed vector
         .map(|ret| {
-            println!("result: {:#?}", ret.result);
-            //let _om = OpaqueMetadata::new(ret.result.into_bytes());
-            let _meta = ModuleMetadata::decode(ret.result.into_bytes());
+            //println!("result: {:#?}", ret.result);
+            use parity_codec::Decode;
+            use hex;
+            let mut _hexstr = ret.result.clone();
+            //println!("hex: {:?}", _hexstr);
+            // cut 0x prefix: FIXME: expensive way to do it
+            _hexstr.remove(0);
+            _hexstr.remove(0);
+            let _unhex = hex::decode(_hexstr)
+                .expect("runtime metadata decoding hex failed");
+            //println!("unhex: {:?}", _unhex);
+            let mut _om = _unhex.as_slice();
+            let _meta = RuntimeMetadataPrefixed::decode(&mut _om)
+                .expect("runtime metadata decoding to RuntimeMetadataV2 failed.");
+            println!("decoded: {:?} ", _meta);
         })
         // if there was an error print it
         .map_err(|e| {
@@ -76,12 +89,6 @@ fn fetch_json(url: hyper::Uri) -> impl Future<Item=JsonResponse, Error=FetchErro
             Ok(ret)
         })
         .from_err()
-}
-
-#[derive(Deserialize, Debug)]
-struct User {
-    id: i32,
-    name: String,
 }
 
 // Define a type so we can return multiple types of errors
