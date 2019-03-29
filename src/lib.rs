@@ -42,8 +42,23 @@ pub fn doit() {
             //println!("unhex: {:?}", _unhex);
             let mut _om = _unhex.as_slice();
             let _meta = RuntimeMetadataPrefixed::decode(&mut _om)
-                .expect("runtime metadata decoding to RuntimeMetadataV2 failed.");
-            println!("decoded: {:?} ", _meta);
+                .expect("runtime metadata decoding to RuntimeMetadataPrefixed failed.");
+            //println!("decoded: {:?} ", _meta);
+            let mut modules;
+            match _meta.1 {
+                RuntimeMetadata::V2(value) => {
+                    modules = value.modules;
+                    println!("modules: {:?}", modules);
+                },
+                _ => println!("unsupported metadata"),
+            }
+            println!("-------------------- modules ----------------");
+            //println!("{:?}", modules[0])
+            //for module in modules. {
+            //    println!(module.)
+            //}
+            
+            
         })
         // if there was an error print it
         .map_err(|e| {
