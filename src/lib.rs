@@ -7,9 +7,10 @@ extern crate serde_derive;
 //extern crate primitives;
 
 use primitives::OpaqueMetadata;
+use primitives::{H256, blake2_256, hexdisplay::HexDisplay};
 use srml_metadata::{
 	DecodeDifferent, DecodeDifferentArray, FnEncode, RuntimeMetadata,
-	ModuleMetadata, RuntimeMetadataV2,
+	ModuleMetadata, RuntimeMetadataV3,
 	DefaultByteGetter, RuntimeMetadataPrefixed,
 };
 //#[cfg(feature = "std")]
@@ -18,6 +19,9 @@ use srml_metadata::{
 use parity_codec::{Decode, Input};
 //use parity_codec::{Encode, Output};
 //use rstd::vec::Vec;
+
+//use test_client::{runtime::{AccountId, Block, Hash, Index, Extrinsic, Transfer}, AccountKeyring::{self, *}};
+
 
 use hyper::rt::{self, Future, Stream};
 use hyper::{Client, Method, Request, Body};
@@ -46,18 +50,37 @@ pub fn doit() {
             //println!("decoded: {:?} ", _meta);
             let mut modules;
             match _meta.1 {
-                RuntimeMetadata::V2(value) => {
-                    modules = value.modules;
-                    println!("modules: {:?}", modules);
+                RuntimeMetadata::V3(value) => {
+                    match value.modules {
+                        DecodeDifferent::Decoded(mods) => {
+                            modules = mods;
+                            println!("module0 {:?}", modules[0]);
+                        },
+                        _ => panic!("unsupported metadata"),
+                    }
                 },
-                _ => println!("unsupported metadata"),
+                _ => panic!("unsupported metadata"),
             }
             println!("-------------------- modules ----------------");
-            //println!("{:?}", modules[0])
-            //for module in modules. {
-            //    println!(module.)
-            //}
+            for module in modules {
+                println!("module: {:?}", module.name);
+                match module.name {
+                    DecodeDifferent::Decoded(name) => {
+                        match module.calls {
+                            Some(DecodeDifferent::Decoded(calls)) => {
+                                println!("calls: {:?}", calls);
+                            },
+                            _ => println!("ignoring"),
+                        }
+                        println!("storage: {:?}", module.storage)
+                    },
+                    _ => println!("ignoring"),
+                }
+            }
+            //create new transaction
             
+            //let xt = uxt(AccountKeyring::Alice, 1).encode();
+        	//let h: H256 = blake2_256(&xt).into();
             
         })
         // if there was an error print it
