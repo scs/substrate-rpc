@@ -24,9 +24,14 @@ use parity_codec::{Decode, Input};
 //use test_client::{runtime::{AccountId, Block, Hash, Index, Extrinsic, Transfer}, AccountKeyring::{self, *}};
 
 
-use hyper::rt::{self, Future, Stream};
-use hyper::{Client, Method, Request, Body};
-use hyper::header::HeaderValue;
+//use hyper::rt::{self, Future, Stream};
+//use hyper::{Client, Method, Request, Body};
+//use hyper::header::HeaderValue;
+//use tokio::runtime::current_thread::Runtime;
+use ws::{connect, CloseCode};
+
+
+ 
 
 #[derive(Deserialize, Debug)]
 struct JsonResponse {
@@ -42,21 +47,45 @@ struct JsonRequest {
     id: String,
 }
 
+
 struct SubstrateRpc {
     url: String,
-    client: Client<hyper::client::connect::HttpConnector>,
+//    client: Client<hyper::client::connect::HttpConnector>,
     id: u32,
 }
+
 
 impl SubstrateRpc {
     fn new(url: &str) -> SubstrateRpc {
         SubstrateRpc {
             url: url.to_string(),
-            client: Client::new(),
+            //client: Client::new(),
             id: 0,
         }
     }
 
+    fn fetch_json(&mut self, method: String, params: String) -> String {
+        let jsonreq = json!({
+            "method": method,
+            "params": json!(null), // params,
+            "jsonrpc": "2.0",
+            "id": self.id.to_string(),
+        });
+
+        println!("json request: {:?}", jsonreq.to_string());
+        let ret = connect("ws://127.0.0.1:9944", |out| {
+            out.send(jsonreq.to_string()).unwrap();
+            move |msg| {
+                println!("Got message: {}", msg);
+                out.close(CloseCode::Normal)
+            }
+        }).unwrap();
+        //ret.to_string()
+
+        // how to return message msg?
+        String::from("ssss")
+    }
+    /*
     fn fetch_json(&mut self, method: String, params: String) -> impl Future<Item=JsonResponse, Error=FetchError> {
         println!("fetching json");
         let jsonreq = json!({
@@ -98,9 +127,24 @@ impl SubstrateRpc {
             })
             .from_err()
     }
-
+    */
     pub fn state_get_metadata(&mut self) {
         println!("calling state_getMetadata");
+        /*
+        let fut = self.fetch_json("state_getMetadata".to_string(), "null".to_string())
+            .map(|ret| { ret.result.clone()})
+            .map_err(|e| {
+                match e {
+                    FetchError::Http(e) => eprintln!("http error: {}", e),
+                    FetchError::Json(e) => eprintln!("json parsing error: {}", e),
+                }
+            });
+        let mut rt = Runtime::new().unwrap();
+        */
+        let _hexstr = self.fetch_json("state_getMetadata".to_string(), "null".to_string());
+        use hex;
+        println!("hex: {:?}", _hexstr);
+/*
         let fut = self.fetch_json("state_getMetadata".to_string(), "null".to_string())
             // use the parsed vector
             .map(|ret| {
@@ -167,15 +211,19 @@ impl SubstrateRpc {
         // Note that in more complicated use cases, the runtime should probably
         // run on its own, and futures should just be spawned into it.
         rt::run(fut);
+        */
     }
+    
 }
 
 
 // Define a type so we can return multiple types of errors
+/*
 enum FetchError {
     Http(hyper::Error),
     Json(serde_json::Error),
 }
+
 
 impl From<hyper::Error> for FetchError {
     fn from(err: hyper::Error) -> FetchError {
@@ -188,7 +236,7 @@ impl From<serde_json::Error> for FetchError {
         FetchError::Json(err)
     }
 }
-
+*/
 /*
 #[test]
 fn test_it(){
@@ -203,9 +251,11 @@ fn test_metadata() {
     jj.state_get_metadata();
 }
 
+/*
 #[test]
 fn test_extrinsic() {
     println!("running test getMetadata");
     let mut jj = SubstrateRpc::new("http://127.0.0.1:9933");
     jj.state_get_metadata();
 }
+*/
