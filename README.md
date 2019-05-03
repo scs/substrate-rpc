@@ -1,2 +1,2 @@
 # substrate-rpc
-a rust client talking to substrate over RPC
+DISCONTINUED. please visit: https://github.com/scs/substrate-api-client 
